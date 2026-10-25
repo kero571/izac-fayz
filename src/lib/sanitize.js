@@ -11,7 +11,7 @@ function clean(value, key, depth) {
     if (value.length > 6000) throw new Error("Text too long");
     if (BAD_SCHEME.test(value)) return "";
     // media urls: only our own files (/path) or Cloudinary
-    if (key === "url" && value && !(value.startsWith("/") && !value.startsWith("//")) && !value.startsWith("https://res.cloudinary.com/")) return "";
+    // if (key === "url" && value && !(value.startsWith("/") && !value.startsWith("//")) && !value.startsWith("https://res.cloudinary.com/")) return "";
     return value;
   }
   if (typeof value === "number") return Number.isFinite(value) ? value : 0;
@@ -23,9 +23,20 @@ function clean(value, key, depth) {
   if (typeof value === "object") {
     const out = {};
     for (const k of Object.keys(value)) {
-      if (k === "__proto__" || k === "constructor" || k === "prototype") continue;
+      if (k === "__proto__" || k === "constructor" || k === "prototype")
+        continue;
       out[k] = clean(value[k], k, depth + 1);
     }
+    // only media objects ({ provider, url }) are restricted to our own files or Cloudinary
+    if (
+      "provider" in value &&
+      out.url &&
+      !(
+        (out.url.startsWith("/") && !out.url.startsWith("//")) ||
+        out.url.startsWith("https://res.cloudinary.com/")
+      )
+    )
+      out.url = "";
     return out;
   }
   throw new Error("Unsupported value");
@@ -33,22 +44,38 @@ function clean(value, key, depth) {
 
 /** Validates + cleans content coming from the dashboard before it is stored. Throws on invalid input. */
 export function sanitizeContent(input) {
-  if (!input || typeof input !== "object" || Array.isArray(input)) throw new Error("Invalid content");
+  if (!input || typeof input !== "object" || Array.isArray(input))
+    throw new Error("Invalid content");
   const out = {};
-  for (const k of Object.keys(defaultContent)) if (k in input) out[k] = clean(input[k], k, 0);
+  for (const k of Object.keys(defaultContent))
+    if (k in input) out[k] = clean(input[k], k, 0);
   if (out.theme) {
-    for (const k of COLOR_KEYS) if (!HEX.test(out.theme[k] || "")) out.theme[k] = defaultContent.theme[k];
-    if (!FONTS[out.theme.font] && !["custom", "google"].includes(out.theme.font)) out.theme.font = "system";
+    for (const k of COLOR_KEYS)
+      if (!HEX.test(out.theme[k] || "")) out.theme[k] = defaultContent.theme[k];
+    if (
+      !FONTS[out.theme.font] &&
+      !["custom", "google"].includes(out.theme.font)
+    )
+      out.theme.font = "system";
     const fam = /^[A-Za-z0-9 _-]{1,40}$/;
-    if (out.theme.customFont && !fam.test(out.theme.customFont.family || "")) out.theme.customFont.family = "";
+    if (out.theme.customFont && !fam.test(out.theme.customFont.family || ""))
+      out.theme.customFont.family = "";
     if (!fam.test(out.theme.googleFont || "")) out.theme.googleFont = "";
-    if (!/^[0-9;]{3,40}$/.test(out.theme.googleWeights || "")) out.theme.googleWeights = "400;600;700";
+    if (!/^[0-9;]{3,40}$/.test(out.theme.googleWeights || ""))
+      out.theme.googleWeights = "400;600;700";
   }
   if (out.sections) {
-    const allowed = Object.keys(defaultContent.sections.order.reduce((a, id) => ({ ...a, [id]: 1 }), {}));
-    out.sections.order = (out.sections.order || []).filter((id) => allowed.includes(id));
-    out.sections.hidden = (out.sections.hidden || []).filter((id) => allowed.includes(id));
+    const allowed = Object.keys(
+      defaultContent.sections.order.reduce((a, id) => ({ ...a, [id]: 1 }), {}),
+    );
+    out.sections.order = (out.sections.order || []).filter((id) =>
+      allowed.includes(id),
+    );
+    out.sections.hidden = (out.sections.hidden || []).filter((id) =>
+      allowed.includes(id),
+    );
   }
-  if (JSON.stringify(out).length > 400_000) throw new Error("Content too large");
+  if (JSON.stringify(out).length > 400_000)
+    throw new Error("Content too large");
   return out;
 }
