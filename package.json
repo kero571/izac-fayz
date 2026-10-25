@@ -1,0 +1,34 @@
+{
+  "name": "izac-portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "cloudinary": "^2.7.0",
+    "firebase": "^12.0.0",
+    "firebase-admin": "^13.0.0",
+    "next": "^16.4.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "@fontsource-variable/cairo": "*",
+    "@fontsource-variable/dm-sans": "*",
+    "@fontsource-variable/inter": "*",
+    "@fontsource-variable/manrope": "*",
+    "@fontsource-variable/montserrat": "*",
+    "@fontsource-variable/outfit": "*",
+    "@fontsource-variable/plus-jakarta-sans": "*",
+    "@fontsource-variable/sora": "*",
+    "@fontsource-variable/space-grotesk": "*",
+    "@tailwindcss/postcss": "4.3.3",
+    "sharp": "^0.34.0",
+    "tailwindcss": "4.3.3"
+  }
+}

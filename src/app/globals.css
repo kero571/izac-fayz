@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+/* All colors/fonts come from CSS variables so the dashboard can change them (see lib/theme.js). */
+@theme inline {
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-base: var(--bg);
+  --color-alt: var(--bg-alt);
+  --color-card: var(--card);
+  --color-line: var(--border);
+  --color-ink: var(--text);
+  --color-muted: var(--muted);
+  --color-tag: color-mix(in srgb, var(--accent) 9%, var(--card));
+  --font-sans: var(--font-body);
+  --animate-marquee: marquee 40s linear infinite;
+}
+
+:root {
+  --accent: #ff3d1f;
+  --on-accent: #000;
+  --bg: #000;
+  --bg-alt: #050505;
+  --card: #111;
+  --border: #521b11;
+  --text: #f5f1e8;
+  --muted: #a8a296;
+  --font-body: "Helvetica Neue", Helvetica, Arial, "Liberation Sans", sans-serif;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --nav-h: 5rem;
+  color-scheme: dark;
+}
+
+@layer base {
+  *, ::before, ::after { border-color: var(--border); }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font-body); -webkit-font-smoothing: antialiased; touch-action: manipulation; }
+  h1, h2, h3 { letter-spacing: -0.02em; }
+  section[id] { scroll-margin-top: var(--nav-h); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+  ::selection { background: var(--accent); color: var(--on-accent); }
+}
+
+/* ---------- Hero image fades (mobile: image behind text, desktop: image on the right) ---------- */
+.hero-fade {
+  background:
+    linear-gradient(to bottom, var(--bg) 0%, transparent 20%, transparent 36%, color-mix(in srgb, var(--bg) 92%, transparent) 74%, var(--bg) 100%);
+}
+@media (min-width: 1024px) {
+  .hero-fade {
+    background:
+      linear-gradient(to right, var(--bg) 46%, color-mix(in srgb, var(--bg) 60%, transparent) 54%, transparent 74%),
+      linear-gradient(to top, var(--bg) 0%, transparent 28%),
+      linear-gradient(to bottom, var(--bg) 0%, transparent 14%);
+  }
+}
+
+/* ---------- Motion (CSS only) ---------- */
+@keyframes rise { from { opacity: 0; transform: translate3d(0, 18px, 0); } to { opacity: 1; transform: none; } }
+@keyframes marquee { to { transform: translate3d(-50%, 0, 0); } }
+@keyframes ring { 0% { transform: scale(1); opacity: 0.55; } 100% { transform: scale(1.9); opacity: 0; } }
+@keyframes drift { 0%, 100% { transform: translate3d(0, 0, 0); } 50% { transform: translate3d(0, -6px, 0); } }
+
+.anim-rise { animation: rise 0.9s var(--ease) both; animation-delay: var(--d, 0ms); }
+
+/* Scroll reveal: elements below the fold get .reveal-pending from JS, then .is-in when they enter the viewport. */
+.reveal-pending { opacity: 0; transform: translate3d(0, 24px, 0); }
+.reveal-pending.is-in {
+  opacity: 1; transform: none;
+  transition: opacity 0.9s var(--ease) var(--d, 0ms), transform 0.9s var(--ease) var(--d, 0ms);
+}
+
+.marquee-track { animation: var(--animate-marquee); will-change: transform; }
+.marquee:hover .marquee-track { animation-play-state: paused; }
+
+.play-btn { position: relative; transition: transform 0.5s var(--ease), box-shadow 0.5s var(--ease); box-shadow: 0 6px 22px color-mix(in srgb, var(--accent) 35%, transparent); }
+.play-btn::after { content: ""; position: absolute; inset: 0; border-radius: 9999px; border: 1px solid var(--accent); animation: ring 2.6s ease-out infinite; }
+.group:hover .play-btn { transform: scale(1.12); }
+
+.lift { transition: transform 0.45s var(--ease), border-color 0.45s var(--ease), background-color 0.45s var(--ease), box-shadow 0.45s var(--ease); }
+.lift:hover { transform: translate3d(0, -3px, 0); border-color: color-mix(in srgb, var(--accent) 70%, transparent); }
+
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, ::before, ::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  .marquee { overflow-x: auto; }
+  .reveal-pending { opacity: 1; transform: none; }
+}
