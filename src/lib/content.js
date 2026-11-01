@@ -31,4 +31,4 @@ export const getContent = cache(async () => {
   }
 });
 
-export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://izacfayz.com").replace(/\/$/, "");
+export const SITE_URL = "https://izac-fayz.vercel.app";
