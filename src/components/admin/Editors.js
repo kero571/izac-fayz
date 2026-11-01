@@ -5,6 +5,7 @@ import { ICON_NAMES, SOCIAL_PLATFORMS } from "@/components/ui/Icon";
 import { useState } from "react";
 import { uploadToCloudinary } from "@/lib/cloudinaryUpload";
 import { posterUrl } from "@/lib/media";
+import AnalyticsTab from "./Analytics";
 import {
   BulkUpload,
   Btn,
@@ -843,5 +844,6 @@ export const TABS = [
   { id: "work", label: "Work", Comp: Work },
   { id: "experience", label: "Experience", Comp: Experience },
   { id: "reviews", label: "Testimonials", Comp: Reviews },
+  { id: "analytics", label: "Analytics", Comp: AnalyticsTab },
   { id: "contact", label: "Contact", Comp: Contact },
 ];
