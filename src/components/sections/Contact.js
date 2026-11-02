@@ -3,10 +3,15 @@ import Section, { Eyebrow, Title } from "@/components/ui/Section";
 import { safeHref } from "@/lib/media";
 
 const btn = "lift flex h-14 items-center justify-center gap-2.5 rounded-2xl border bg-card text-[15px] font-semibold text-ink";
+const btnDesktop = "lift hidden h-14 items-center justify-center gap-2.5 rounded-2xl border bg-card text-[15px] font-semibold text-ink md:flex";
+const btnMobile = `${btn} md:hidden`;
 
 export default function Contact({ c, n, alt }) {
   const k = c.contact;
   const wa = k.whatsapp ? `https://wa.me/${k.whatsapp.replace(/\D/g, "")}${k.whatsappMessage ? `?text=${encodeURIComponent(k.whatsappMessage)}` : ""}` : null;
+  const isGmail = k.email && /@(gmail|googlemail)\.com$/i.test(k.email.trim());
+  const gmail = isGmail ? `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(k.email.trim())}` : null;
+  const mailIcon = <Icon name="mail" className="h-[18px] w-[18px] text-accent" />;
   return (
     <Section id="contact" alt={alt}>
       <div className="mx-auto max-w-xl text-center">
@@ -25,7 +30,14 @@ export default function Contact({ c, n, alt }) {
           )}
           {(k.email || k.cv?.url) && (
             <div className={`grid gap-3 ${k.email && k.cv?.url ? "grid-cols-2" : ""}`}>
-              {k.email && <a href={`mailto:${k.email}`} className={btn}><Icon name="mail" className="h-[18px] w-[18px] text-accent" /> {k.emailLabel}</a>}
+              {k.email && (gmail ? (
+                <>
+                  <a href={`mailto:${k.email}`} className={btnMobile}>{mailIcon} {k.emailLabel}</a>
+                  <a href={gmail} target="_blank" rel="noopener noreferrer" className={btnDesktop}>{mailIcon} {k.emailLabel}</a>
+                </>
+              ) : (
+                <a href={`mailto:${k.email}`} className={btn}>{mailIcon} {k.emailLabel}</a>
+              ))}
               {k.cv?.url && <a href={k.cv.url} target="_blank" rel="noopener noreferrer" download className={btn}><Icon name="download" className="h-[18px] w-[18px] text-accent" /> {k.cvLabel}</a>}
             </div>
           )}
