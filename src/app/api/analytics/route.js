@@ -44,6 +44,7 @@ function mergePages(rows) {
 }
 
 const top = (rows, n = 8) => [...rows].sort((a, b) => b.sessions - a.sessions).slice(0, n);
+const sum = (rows, k) => rows.reduce((a, r) => a + r[k], 0);
 
 export async function GET(request) {
   const g = await requireAdmin(request);
@@ -52,11 +53,19 @@ export async function GET(request) {
   try {
     const [country, device, source, url] = await Promise.all(["Country", "Device", "Source", "URL"].map(pull));
     const pages = mergePages(url);
-    const sum = (rows, k) => rows.reduce((a, r) => a + r[k], 0);
     const best = (k) => Math.max(...[country, device, source].map((r) => sum(r, k)));
+    const total = best("sessions");
+
+    // show a card only when its numbers are complete (match the overall visit count);
+    // otherwise Clarity is still processing it, so we hide it instead of showing partial data
+    const complete = (rows, n) => (total > 0 && sum(rows, "sessions") >= total * 0.9 ? top(rows, n) : null);
+
     return NextResponse.json({
-      totals: { sessions: best("sessions"), users: best("users"), bots: best("bots") },
-      country: top(country), device: top(device), source: top(source), pages: top(pages, 6),
+      totals: { sessions: total, users: best("users"), bots: best("bots") },
+      country: complete(country),
+      device: complete(device),
+      source: complete(source),
+      pages: complete(pages, 6),
     }, { headers: { "Cache-Control": "no-store" } });
   } catch (e) {
     return NextResponse.json({ error: e.message }, { status: 502 });

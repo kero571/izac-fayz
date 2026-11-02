@@ -21,8 +21,16 @@ function List({ title, rows }) {
       <ul className="grid gap-2.5">
         {rows.map((r) => (
           <li key={r.label} className="text-sm">
-            <div className="flex justify-between gap-3"><span className="truncate">{r.label}</span><span className="tabular-nums text-muted">{r.sessions}</span></div>
-            <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-black/20"><div className="h-full rounded-full bg-accent" style={{ width: `${(r.sessions / max) * 100}%` }} /></div>
+            <div className="flex justify-between gap-3">
+              <span className="truncate">{r.label}</span>
+              <span className="tabular-nums text-muted">{r.sessions}</span>
+            </div>
+            <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-black/20">
+              <div
+                className="h-full rounded-full bg-accent"
+                style={{ width: `${(r.sessions / max) * 100}%` }}
+              />
+            </div>
           </li>
         ))}
       </ul>
@@ -37,8 +45,11 @@ export default function AnalyticsTab() {
 
   useEffect(() => {
     (async () => {
-      try { setD(await authedFetch(await getToken(), "/api/analytics")); }
-      catch (e) { setErr(e.message); }
+      try {
+        setD(await authedFetch(await getToken(), "/api/analytics"));
+      } catch (e) {
+        setErr(e.message);
+      }
     })();
   }, [getToken]);
 
@@ -46,35 +57,75 @@ export default function AnalyticsTab() {
     <div className="grid gap-6">
       <div>
         <h2 className="text-lg font-bold">Visitors — last 3 days</h2>
-        <p className="mt-1 text-sm text-muted">Numbers refresh twice a day (Microsoft Clarity limit). For older dates, heatmaps and recordings use the buttons below.</p>
+        <p className="mt-1 text-sm text-muted">
+          Numbers refresh twice a day (Microsoft Clarity limit). For older
+          dates, heatmaps and recordings use the buttons below.
+        </p>
       </div>
 
-      {err && <div className="rounded-2xl border bg-card p-5 text-sm text-muted">{err}</div>}
+      {err && (
+        <div className="rounded-2xl border bg-card p-5 text-sm text-muted">
+          {err}
+        </div>
+      )}
       {!d && !err && <p className="text-muted">Loading…</p>}
 
-      {d && (
-        <>
-          <div className="grid gap-4 sm:grid-cols-3">
-            {[["Visits (sessions)", d.totals.sessions], ["Unique visitors", d.totals.users], ["Bot visits (excluded)", d.totals.bots]].map(([t, v]) => (
-              <div key={t} className="rounded-2xl border bg-card p-5"><p className="text-sm text-muted">{t}</p><p className="mt-1 text-3xl font-extrabold tabular-nums">{v}</p></div>
-            ))}
+      {d &&
+        (d.totals.sessions === 0 ? (
+          <div className="rounded-2xl border bg-card p-5 text-sm text-muted">
+            No visits recorded yet. Data appears here automatically once
+            Microsoft Clarity finishes processing the first visits.
           </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            <List title="Countries" rows={d.country} />
-            <List title="Devices" rows={d.device} />
-            <List title="Traffic sources" rows={d.source} />
-            <List title="Top pages" rows={d.pages} />
-          </div>
-        </>
-      )}
+        ) : (
+          <>
+            <div className="grid gap-4 sm:grid-cols-3">
+              {[
+                ["Visits (sessions)", d.totals.sessions],
+                ["Unique visitors", d.totals.users],
+                ["Bot visits (excluded)", d.totals.bots],
+              ].map(([t, v]) => (
+                <div key={t} className="rounded-2xl border bg-card p-5">
+                  <p className="text-sm text-muted">{t}</p>
+                  <p className="mt-1 text-3xl font-extrabold tabular-nums">
+                    {v}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              {d.country && <List title="Countries" rows={d.country} />}
+              {d.device && <List title="Devices" rows={d.device} />}
+              {d.source && <List title="Traffic sources" rows={d.source} />}
+              {d.pages && <List title="Top pages" rows={d.pages} />}
+            </div>
+            {[d.country, d.device, d.source, d.pages].some((x) => !x) && (
+              <p className="text-xs text-muted">
+                Some breakdowns are still being processed by Microsoft Clarity
+                and will appear here automatically. You can see everything now
+                using the buttons below.
+              </p>
+            )}
+          </>
+        ))}
 
       <div>
         <h3 className="mb-3 font-bold">Open in Microsoft Clarity</h3>
-        {!ID ? <p className="text-sm text-muted">Add <code>NEXT_PUBLIC_CLARITY_ID</code> to the environment.</p> : (
+        {!ID ? (
+          <p className="text-sm text-muted">
+            Add <code>NEXT_PUBLIC_CLARITY_ID</code> to the environment.
+          </p>
+        ) : (
           <div className="grid gap-4 md:grid-cols-2">
             {LINKS.map(([t, desc, p]) => (
-              <a key={p} href={`${base}/${p}`} target="_blank" rel="noopener noreferrer" className="rounded-2xl border bg-card p-5 transition hover:border-accent">
-                <p className="text-lg font-bold">{t} ↗</p><p className="mt-1 text-sm text-muted">{desc}</p>
+              <a
+                key={p}
+                href={`${base}/${p}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-2xl border bg-card p-5 transition hover:border-accent"
+              >
+                <p className="text-lg font-bold">{t} ↗</p>
+                <p className="mt-1 text-sm text-muted">{desc}</p>
               </a>
             ))}
           </div>
