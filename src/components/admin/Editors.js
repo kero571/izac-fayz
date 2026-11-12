@@ -20,6 +20,8 @@ import {
   Toggle,
   uid,
   useAdmin,
+  MAX_VIDEO_MB,
+  videoPoster,
 } from "./fields";
 
 const TitleFields = ({ p }) => (
@@ -389,6 +391,12 @@ function CategoryPanel({ name, index, uncategorized }) {
     let list = get("work.items") || [];
     for (const [i, file] of files.entries()) {
       const kind = file.type.startsWith("image/") ? "image" : "video";
+      if (kind === "video" && file.size > MAX_VIDEO_MB * 1024 * 1024) {
+        setStatus(
+          `${file.name} is over ${MAX_VIDEO_MB}MB. Compress it first (720p).`,
+        );
+        return;
+      }
       try {
         setStatus(`Uploading ${i + 1}/${files.length}… 0%`);
         const media = await uploadToCloudinary({
@@ -399,6 +407,18 @@ function CategoryPanel({ name, index, uncategorized }) {
           onProgress: (p) =>
             setStatus(`Uploading ${i + 1}/${files.length}… ${p}%`),
         });
+        let poster = null;
+        if (kind === "video") {
+          setStatus(`Cover ${i + 1}/${files.length}…`);
+          const blob = await videoPoster(file);
+          if (blob)
+            poster = await uploadToCloudinary({
+              file: new File([blob], "poster.jpg", { type: "image/jpeg" }),
+              resourceType: "image",
+              folder: "posters",
+              token: await getToken(),
+            }).catch(() => null);
+        }
         list = [
           ...list,
           {
@@ -408,7 +428,7 @@ function CategoryPanel({ name, index, uncategorized }) {
             category: uncategorized ? "" : name,
             title: "",
             media,
-            poster: null,
+            poster,
           },
         ];
         set("work.items", list);
@@ -632,6 +652,7 @@ function CategoryPanel({ name, index, uncategorized }) {
                   />
                   <Media
                     path={`work.items.${gi}.media`}
+                    posterTo={`work.items.${gi}`}
                     label="File (replace it here)"
                     kind={it.kind === "image" ? "image" : "video"}
                     folder="works"
@@ -641,7 +662,7 @@ function CategoryPanel({ name, index, uncategorized }) {
                       path={`work.items.${gi}.poster`}
                       label="Cover image (optional)"
                       folder="posters"
-                      hint="Cloudinary videos get an automatic cover. Upload one only for a custom cover, or for videos stored in the project."
+                      hint="Generated automatically from the video when you upload it. Upload one only for a custom cover, or for videos stored in the project."
                     />
                   )}
                 </div>

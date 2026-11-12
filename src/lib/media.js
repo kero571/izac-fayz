@@ -21,8 +21,7 @@ export function imageSrcSet(m, widths = [480, 750, 1080]) {
 
 /** Video URL: Cloudinary serves the best codec/quality automatically. */
 export function videoUrl(m) {
-  if (!m?.url) return "";
-  return isCld(m) ? cld(m.url, "f_auto,q_auto") : m.url;
+  return m?.url || "";
 }
 
 /** Poster for a work card: custom poster > auto frame from Cloudinary video > nothing. */
